@@ -78,7 +78,9 @@ class PMMDynamicController(MarketMakingControllerBase):
     """
     def __init__(self, config: PMMDynamicControllerConfig, *args, **kwargs):
         self.config = config
-        self.max_records = max(config.macd_slow, config.macd_fast, config.macd_signal, config.natr_length) + 100
+        # Reduced from +100 to +58 to lower max_records to ~100 for pairs with limited candle history
+        required_for_indicators = max(config.macd_slow, config.macd_fast, config.macd_signal, config.natr_length)
+        self.max_records = max(100, required_for_indicators + 58)
         if len(self.config.candles_config) == 0:
             self.config.candles_config = [CandlesConfig(
                 connector=config.candles_connector,
