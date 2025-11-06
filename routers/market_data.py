@@ -42,11 +42,15 @@ async def get_candles(request: Request, candles_config: CandlesConfigRequest):
             connector=candles_config.connector_name, trading_pair=candles_config.trading_pair,
             interval=candles_config.interval, max_records=candles_config.max_records)
         candles_feed = market_data_feed_manager.get_candles_feed(candles_cfg)
-        
-        # Wait for the candles feed to be ready
+
+        # Wait for the candles feed to be ready with a timeout
+        timeout = 30  # 30 second timeout
+        start_time = time.time()
         while not candles_feed.ready:
+            if time.time() - start_time > timeout:
+                return {"error": f"Timeout waiting for candles feed to become ready after {timeout}s. The feed may not be initialized properly or the connector may not support this trading pair."}
             await asyncio.sleep(0.1)
-        
+
         # Get the candles dataframe
         df = candles_feed.candles_df
         
