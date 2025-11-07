@@ -91,10 +91,13 @@ class PMMDynamicController(MarketMakingControllerBase):
         super().__init__(config, *args, **kwargs)
 
     async def update_processed_data(self):
-        candles = self.market_data_provider.get_candles_df(connector_name=self.config.candles_connector,
-                                                           trading_pair=self.config.candles_trading_pair,
-                                                           interval=self.config.interval,
-                                                           max_records=self.max_records)
+        # candles_config is guaranteed to have at least one element by __init__
+        candle_config = self.config.candles_config[0]
+        candles = self.market_data_provider.get_candles_df(
+            connector_name=candle_config.connector,
+            trading_pair=candle_config.trading_pair,
+            interval=candle_config.interval,
+            max_records=candle_config.max_records)
         natr = ta.natr(candles["high"], candles["low"], candles["close"], length=self.config.natr_length) / 100
         macd_output = ta.macd(candles["close"], fast=self.config.macd_fast,
                               slow=self.config.macd_slow, signal=self.config.macd_signal)
